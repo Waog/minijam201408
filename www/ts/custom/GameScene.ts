@@ -9,8 +9,8 @@ module GameBp {
         green: Phaser.TilemapLayer;
         ground: Ground;
         tiles: Phaser.Physics.Ninja.Tile[];
-        exitGroup: Phaser.Group;
         playerFalls: boolean;
+        exit : Exit;
 
         preload() {
 
@@ -52,12 +52,8 @@ module GameBp {
 
             this.player = new Player(this.game, 10, 10);
 
-
-            //  And now we convert all of the Tiled objects with an ID of 34 into sprites within the coins group
-            this.exitGroup = this.game.add.group();
-            this.exitGroup.enableBody = true;
-            map.createFromObjects('objects', 29, 'exit', 0, true, false, this.exitGroup);
-
+            this.exit = new Exit(this, map);
+            
             var tutorialString = "collect the colors\n reach the goal!";
             this.game.add.bitmapText(10, 400, 'bmFont', tutorialString, 25);
         }
@@ -69,7 +65,7 @@ module GameBp {
                 this.player.die(this.onLose, this);
             }
 
-            this.game.physics.arcade.overlap(this.player, this.exitGroup, this.onExit, null, this);
+            this.game.physics.arcade.overlap(this.player, this.exit, this.onExit, null, this);
         }
 
         onExit() {
@@ -93,7 +89,7 @@ module GameBp {
         }
 
         render() {
-            this.game.debug.body(this.player);
+            //            this.game.debug.body(this.player);
         }
     }
 

@@ -42,8 +42,8 @@ declare module GameBp {
         public green: Phaser.TilemapLayer;
         public ground: Ground;
         public tiles: Phaser.Physics.Ninja.Tile[];
-        public exitGroup: Phaser.Group;
         public playerFalls: boolean;
+        public exit: Exit;
         public preload(): void;
         public create(): void;
         public update(): void;
@@ -110,5 +110,11 @@ declare module GameBp {
         public create(): void;
         public onInteraction(): void;
         public shutdown(): void;
+    }
+}
+declare module GameBp {
+    class Exit extends Phaser.Group {
+        private tilemap;
+        constructor(scene: Phaser.State, tilemap: Phaser.Tilemap);
     }
 }

@@ -196,10 +196,7 @@ var GameBp;
             //            var red = map.createLayer('red');
             this.player = new GameBp.Player(this.game, 10, 10);
 
-            //  And now we convert all of the Tiled objects with an ID of 34 into sprites within the coins group
-            this.exitGroup = this.game.add.group();
-            this.exitGroup.enableBody = true;
-            map.createFromObjects('objects', 29, 'exit', 0, true, false, this.exitGroup);
+            this.exit = new GameBp.Exit(this, map);
 
             var tutorialString = "collect the colors\n reach the goal!";
             this.game.add.bitmapText(10, 400, 'bmFont', tutorialString, 25);
@@ -212,7 +209,7 @@ var GameBp;
                 this.player.die(this.onLose, this);
             }
 
-            this.game.physics.arcade.overlap(this.player, this.exitGroup, this.onExit, null, this);
+            this.game.physics.arcade.overlap(this.player, this.exit, this.onExit, null, this);
         };
 
         GameScene.prototype.onExit = function () {
@@ -234,7 +231,7 @@ var GameBp;
         };
 
         GameScene.prototype.render = function () {
-            this.game.debug.body(this.player);
+            //            this.game.debug.body(this.player);
         };
         return GameScene;
     })(Phaser.State);
@@ -480,9 +477,10 @@ var GameBp;
             this.body.velocity.x = 0;
             this.body.velocity.y = 0;
 
-            var bodyTween = this.game.add.tween(this.body);
-            bodyTween.to({ y: this.body.y - 10 }, 500, Phaser.Easing.Circular.Out).to({ y: this.body.y }, 800, Phaser.Easing.Bounce.Out).repeat(3).onComplete.add(callback, context);
-            bodyTween.start();
+            var bodyY = this.body.y;
+            this.game.add.tween(this.body).to({ y: bodyY - 10 }, 300, Phaser.Easing.Circular.Out).to({ y: bodyY }, 500, Phaser.Easing.Bounce.Out).loop().start();
+
+            this.game.add.tween({}).to({}, 5000).start().onComplete.add(callback, context);
         };
         Player.MAX_SPEED = 150;
         return Player;
@@ -555,5 +553,20 @@ var GameBp;
         return Win;
     })(Phaser.State);
     GameBp.Win = Win;
+})(GameBp || (GameBp = {}));
+var GameBp;
+(function (GameBp) {
+    var Exit = (function (_super) {
+        __extends(Exit, _super);
+        function Exit(scene, tilemap) {
+            _super.call(this, scene.game);
+            this.tilemap = tilemap;
+
+            this.enableBody = true;
+            tilemap.createFromObjects('objects', 29, 'exit', 0, true, false, this);
+        }
+        return Exit;
+    })(Phaser.Group);
+    GameBp.Exit = Exit;
 })(GameBp || (GameBp = {}));
 //# sourceMappingURL=minijam.js.map

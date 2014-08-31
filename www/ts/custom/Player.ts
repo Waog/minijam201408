@@ -72,12 +72,15 @@ module GameBp {
             this.body.velocity.x = 0;
             this.body.velocity.y = 0;
 
-            var bodyTween: Phaser.Tween = this.game.add.tween(this.body);
-            bodyTween.to({ y: this.body.y - 10 }, 500, Phaser.Easing.Circular.Out)
-                .to({ y: this.body.y }, 800, Phaser.Easing.Bounce.Out)
-                .repeat(3)
-                .onComplete.add(callback, context);
-            bodyTween.start();
+            var bodyY: number = this.body.y;
+            this.game.add.tween(this.body)
+                .to({ y: bodyY - 10 }, 300, Phaser.Easing.Circular.Out)
+                .to({ y: bodyY }, 500, Phaser.Easing.Bounce.Out)
+                .loop()
+                .start();
+
+            this.game.add.tween({})
+                .to({}, 5000).start().onComplete.add(callback, context);
         }
     }
 }
