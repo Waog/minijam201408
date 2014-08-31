@@ -25,17 +25,31 @@ declare module GameBp {
     }
 }
 declare module GameBp {
+    class Ground extends Phaser.Group {
+        private tilemap;
+        private layer;
+        constructor(scene: Phaser.State, tilemap: Phaser.Tilemap);
+        public collidesWith(body: Phaser.Physics.Arcade.Body): boolean;
+        private collides(body, x, y);
+    }
+}
+declare module GameBp {
     class GameScene extends Phaser.State {
-        public background: Phaser.Sprite;
         public music: Phaser.Sound;
         public hitSound: Phaser.Sound;
+        public input: any;
+        public player: Player;
+        public green: Phaser.TilemapLayer;
+        public ground: Ground;
+        public tiles: Phaser.Physics.Ninja.Tile[];
+        public playerFalls: boolean;
         public preload(): void;
         public create(): void;
-        public addPhysicsMovmentAndColision(sprite: Phaser.Sprite): void;
-        public addInputHandler(sprite: Phaser.Sprite, callback: Function): void;
+        public update(): void;
         public onWin(): void;
         public onLose(): void;
         public shutdown(): void;
+        public render(): void;
     }
 }
 declare module GameBp {
@@ -70,6 +84,16 @@ declare module GameBp {
         public create(): void;
         public onBack(): void;
         public shutdown(): void;
+    }
+}
+declare module GameBp {
+    class Player extends Phaser.Sprite {
+        static MAX_SPEED: number;
+        private dying;
+        constructor(game: Phaser.Game, x: number, y: number);
+        static preload(scene: Phaser.State): void;
+        public update(): void;
+        public die(callback: Function, context: Object): void;
     }
 }
 declare module Utils {

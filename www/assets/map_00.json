@@ -51,7 +51,7 @@
                 {
                  "gid":20,
                  "height":0,
-                 "name":"",
+                 "name":"redball",
                  "properties":
                     {
 
@@ -79,7 +79,7 @@
                 {
                  "gid":22,
                  "height":0,
-                 "name":"",
+                 "name":"player",
                  "properties":
                     {
 
@@ -92,7 +92,7 @@
                 }],
          "opacity":1,
          "type":"objectgroup",
-         "visible":false,
+         "visible":true,
          "width":40,
          "x":0,
          "y":0

@@ -121,19 +121,56 @@ var GameBp;
 })(GameBp || (GameBp = {}));
 var GameBp;
 (function (GameBp) {
+    var Ground = (function (_super) {
+        __extends(Ground, _super);
+        function Ground(scene, tilemap) {
+            _super.call(this, scene.game);
+            this.tilemap = tilemap;
+
+            this.layer = tilemap.createLayer('ground');
+            this.layer.debug = true;
+            tilemap.setCollisionByExclusion([], true, this.layer);
+        }
+        Ground.prototype.collidesWith = function (body) {
+            for (var y = 0; y < this.tilemap.height; y++) {
+                for (var x = 0; x < this.tilemap.width; x++) {
+                    if (this.collides(body, x, y)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        };
+
+        Ground.prototype.collides = function (body, x, y) {
+            var tile = this.tilemap.getTile(x, y, this.layer);
+            if (!tile) {
+                return false;
+            }
+
+            if (tile.right < body.x || tile.left > body.x + body.width || tile.bottom < body.y || tile.top > body.y + body.height) {
+                return false;
+            }
+
+            return true;
+        };
+        return Ground;
+    })(Phaser.Group);
+    GameBp.Ground = Ground;
+})(GameBp || (GameBp = {}));
+var GameBp;
+(function (GameBp) {
     var GameScene = (function (_super) {
         __extends(GameScene, _super);
         function GameScene() {
             _super.apply(this, arguments);
-            this.MAX_SPEED = 500;
         }
         GameScene.prototype.preload = function () {
-            this.load.tilemap('map', 'assets/map_00.json', null, Phaser.Tilemap.TILED_JSON);
-            this.load.image('tileset', 'assets/tileset.png');
+            this.load.tilemap('map', 'assets/testmap01.json', null, Phaser.Tilemap.TILED_JSON);
+            this.load.image('tileset', 'assets/tileset.bak.png');
 
-            this.load.image('gameBg', 'assets/placeholder/img/squareBlue.png');
-            this.load.image('enemy', 'assets/placeholder/img/headBlack.png');
-            this.load.image('friend', 'assets/placeholder/img/headWhite.png');
+            GameBp.Player.preload(this);
             this.load.audio('hit', Utils.getAudioFileArray('assets/placeholder/fx/hit'));
             //            this.game.gameplayMusic.play();
         };
@@ -145,112 +182,29 @@ var GameBp;
             //            this.music.play();
             this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
-            this.background = this.add.sprite(0, 0, 'gameBg');
-            this.background.width = this.game.world.width;
-            this.background.height = this.game.world.height;
-
             var map = this.add.tilemap('map');
-            map.addTilesetImage('tileset', 'tileset');
+            map.addTilesetImage('tileset.bak', 'tileset');
 
             var background = map.createLayer('background');
-            var ground = map.createLayer('ground');
-            var red = map.createLayer('red');
-            var green = map.createLayer('green');
-            var green = map.createLayer('objects');
 
-            var tutorialString = "collect the colors, reach the goal!";
-            this.game.add.bitmapText(10, 10, 'bmFont', tutorialString, 50);
+            this.ground = new GameBp.Ground(this, map);
 
-            var enemy = this.add.sprite(100, 100, "enemy");
-            this.addPhysicsMovmentAndColision(enemy);
-            this.addInputHandler(enemy, this.onWin);
+            //            this.green = map.createLayer('green');
+            //            this.green.debug = true;
+            //            map.setCollison([], true, 'green');
+            //            var red = map.createLayer('red');
+            var tutorialString = "collect the colors\n reach the goal!";
+            this.game.add.bitmapText(10, 400, 'bmFont', tutorialString, 25);
 
-            this.player = this.add.sprite(100, 100, "friend");
-            this.physics.enable(this.player, Phaser.Physics.ARCADE);
-
-            // Capture certain keys to prevent their default actions in the browser.
-            // This is only necessary because this is an HTML5 game. Games on other
-            // platforms may not need code like this.
-            this.input.keyboard.addKeyCapture([
-                Phaser.Keyboard.LEFT,
-                Phaser.Keyboard.RIGHT,
-                Phaser.Keyboard.UP,
-                Phaser.Keyboard.DOWN
-            ]);
+            this.player = new GameBp.Player(this.game, 10, 10);
         };
 
         GameScene.prototype.update = function () {
-            if (this.leftInputIsActive()) {
-                // If the LEFT key is down, set the player velocity to move left
-                this.player.body.velocity.x = -this.MAX_SPEED;
-            } else if (this.rightInputIsActive()) {
-                // If the RIGHT key is down, set the player velocity to move right
-                this.player.body.velocity.x = this.MAX_SPEED;
-            } else {
-                // Stop the player from moving horizontally
-                this.player.body.velocity.x = 0;
+            this.playerFalls = true;
+
+            if (!this.ground.collidesWith(this.player.body)) {
+                this.player.die(this.onLose, this);
             }
-
-            if (this.upInputIsActive()) {
-                // If the RIGHT key is down, set the player velocity to move right
-                this.player.body.velocity.y = -this.MAX_SPEED;
-            } else if (this.downInputIsActive()) {
-                // If the RIGHT key is down, set the player velocity to move right
-                this.player.body.velocity.y = this.MAX_SPEED;
-            } else {
-                // Stop the player from moving horizontally
-                this.player.body.velocity.y = 0;
-            }
-        };
-
-        GameScene.prototype.leftInputIsActive = function () {
-            var isActive = false;
-
-            isActive = this.input.keyboard.isDown(Phaser.Keyboard.LEFT);
-            isActive |= (this.game.input.activePointer.isDown && this.input.activePointer.x < this.game.width / 4);
-
-            return isActive;
-        };
-
-        GameScene.prototype.rightInputIsActive = function () {
-            var isActive = false;
-
-            isActive = this.input.keyboard.isDown(Phaser.Keyboard.RIGHT);
-            isActive |= (this.game.input.activePointer.isDown && this.input.activePointer.x > this.game.width / 2 + this.game.width / 4);
-
-            return isActive;
-        };
-
-        GameScene.prototype.upInputIsActive = function () {
-            var isActive = false;
-
-            isActive = this.input.keyboard.isDown(Phaser.Keyboard.UP);
-            isActive |= (this.game.input.activePointer.isDown && this.input.activePointer.x > this.game.width / 2 + this.game.width / 4);
-
-            return isActive;
-        };
-
-        GameScene.prototype.downInputIsActive = function () {
-            var isActive = false;
-
-            isActive = this.input.keyboard.isDown(Phaser.Keyboard.DOWN);
-            isActive |= (this.game.input.activePointer.isDown && this.input.activePointer.x > this.game.width / 2 + this.game.width / 4);
-
-            return isActive;
-        };
-
-        GameScene.prototype.addPhysicsMovmentAndColision = function (sprite) {
-            this.game.physics.arcade.enable(sprite);
-            sprite.body.velocity.x = 50 + Math.random() * 50;
-            sprite.body.velocity.y = 50 + Math.random() * 50;
-            sprite.body.bounce.x = 1;
-            sprite.body.bounce.y = 1;
-            sprite.body.collideWorldBounds = true;
-        };
-
-        GameScene.prototype.addInputHandler = function (sprite, callback) {
-            sprite.inputEnabled = true;
-            sprite.events.onInputDown.add(callback, this);
         };
 
         GameScene.prototype.onWin = function () {
@@ -265,6 +219,10 @@ var GameBp;
 
         GameScene.prototype.shutdown = function () {
             //            this.game.gameplayMusic.stop();
+        };
+
+        GameScene.prototype.render = function () {
+            //            this.game.debug.body(this.player);
         };
         return GameScene;
     })(Phaser.State);
@@ -358,6 +316,16 @@ var GameBp;
                 // Same goes for mobile settings.
             }
 
+            // Capture certain keys to prevent their default actions in the browser.
+            // This is only necessary because this is an HTML5 game. Games on other
+            // platforms may not need code like this.
+            this.input.keyboard.addKeyCapture([
+                Phaser.Keyboard.LEFT,
+                Phaser.Keyboard.RIGHT,
+                Phaser.Keyboard.UP,
+                Phaser.Keyboard.DOWN
+            ]);
+
             this.game.state.start('Preloader', true, false);
         };
         return Bootloader;
@@ -429,6 +397,71 @@ var GameBp;
     })(Phaser.State);
     GameBp.Credits = Credits;
     ;
+})(GameBp || (GameBp = {}));
+var GameBp;
+(function (GameBp) {
+    var Player = (function (_super) {
+        __extends(Player, _super);
+        function Player(game, x, y) {
+            _super.call(this, game, x, y, 'player', 0);
+            this.dying = false;
+            this.anchor.setTo(0.5, 0.5);
+            game.physics.enable(this, Phaser.Physics.ARCADE);
+            this.body.collideWorldBounds = true;
+            game.add.existing(this);
+        }
+        Player.preload = function (scene) {
+            scene.load.image('player', 'assets/player.png');
+        };
+
+        Player.prototype.update = function () {
+            _super.prototype.update.call(this);
+
+            if (this.dying) {
+                return;
+            }
+            this.body.velocity.x = 0;
+            this.body.velocity.y = 0;
+
+            if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+                this.body.velocity.x = -Player.MAX_SPEED;
+                this.scale.x = -1;
+            } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+                this.body.velocity.x = Player.MAX_SPEED;
+                this.scale.x = 1;
+            }
+
+            if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+                this.body.velocity.y = -Player.MAX_SPEED;
+            } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+                this.body.velocity.y = Player.MAX_SPEED;
+            }
+        };
+
+        Player.prototype.die = function (callback, context) {
+            if (this.dying) {
+                return;
+            }
+
+            console.log("I'm dead");
+            this.dying = true;
+            this.body.velocity.x = 0;
+            this.body.velocity.y = 0;
+
+            var spriteTween = this.game.add.tween(this);
+            spriteTween.to({ rotation: 40, alpha: 0, width: 0, height: 0 }, 3000);
+            spriteTween.onComplete.add(callback, context);
+            spriteTween.start();
+
+            var fallTo = this.body.y + 40;
+            var bodyTween = this.game.add.tween(this.body);
+            bodyTween.to({ y: fallTo }, 3000);
+            bodyTween.start();
+        };
+        Player.MAX_SPEED = 150;
+        return Player;
+    })(Phaser.Sprite);
+    GameBp.Player = Player;
 })(GameBp || (GameBp = {}));
 var Utils;
 (function (Utils) {

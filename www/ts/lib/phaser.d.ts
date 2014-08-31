@@ -3168,6 +3168,7 @@ declare module Phaser {
                 gravity: Phaser.Point;
                 halfWidth: number;
                 halfHeight: number;
+                height: number;
                 immovable: boolean;
                 mass: number;
                 maxAngular: number;

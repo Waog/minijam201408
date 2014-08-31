@@ -1,9 +1,9 @@
 module GameBp {
 
-     
+
     export class Bootloader extends Phaser.State {
 
-        
+
         preload() {
 
             this.load.image('preloaderBg',
@@ -12,7 +12,7 @@ module GameBp {
                 'assets/placeholder/img/squareGreen3D.png');
         }
 
-        
+
         create() {
 
             //  Unless you specifically need to support multitouch I would recommend setting this to 1
@@ -28,6 +28,16 @@ module GameBp {
             else {
                 // Same goes for mobile settings.
             }
+
+            // Capture certain keys to prevent their default actions in the browser.
+            // This is only necessary because this is an HTML5 game. Games on other
+            // platforms may not need code like this.
+            this.input.keyboard.addKeyCapture([
+                Phaser.Keyboard.LEFT,
+                Phaser.Keyboard.RIGHT,
+                Phaser.Keyboard.UP,
+                Phaser.Keyboard.DOWN
+            ]);
 
             this.game.state.start('Preloader', true, false);
         }
