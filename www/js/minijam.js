@@ -131,6 +131,10 @@ var GameBp;
             this.layer.debug = true;
             tilemap.setCollisionByExclusion([], true, this.layer);
         }
+        Ground.prototype.update = function () {
+            _super.prototype.update.call(this);
+        };
+
         Ground.prototype.collidesWith = function (body) {
             for (var y = 0; y < this.tilemap.height; y++) {
                 for (var x = 0; x < this.tilemap.width; x++) {
@@ -169,8 +173,9 @@ var GameBp;
         GameScene.prototype.preload = function () {
             this.load.tilemap('map', 'assets/testmap01.json', null, Phaser.Tilemap.TILED_JSON);
             this.load.image('tileset', 'assets/tileset.bak.png');
-            this.load.image('exit', 'assets/exit.png');
+            this.load.image('redball', 'assets/redball.png');
 
+            GameBp.Exit.preload(this);
             GameBp.Player.preload(this);
             this.load.audio('hit', Utils.getAudioFileArray('assets/placeholder/fx/hit'));
             //            this.game.gameplayMusic.play();
@@ -188,32 +193,15 @@ var GameBp;
 
             var background = map.createLayer('background');
 
-            this.ground = new GameBp.Ground(this, map);
+            var ground = new GameBp.Ground(this, map);
 
-            //            this.green = map.createLayer('green');
-            //            this.green.debug = true;
-            //            map.setCollison([], true, 'green');
-            //            var red = map.createLayer('red');
-            this.player = new GameBp.Player(this.game, 10, 10);
+            var player = new GameBp.Player(this.game, 10, 10, ground, this.onWin, this.onLose, this);
 
-            this.exit = new GameBp.Exit(this, map);
+            var exit = new GameBp.Exit(this, map, player);
+            new GameBp.Redball(this, map);
 
             var tutorialString = "collect the colors\n reach the goal!";
             this.game.add.bitmapText(10, 400, 'bmFont', tutorialString, 25);
-        };
-
-        GameScene.prototype.update = function () {
-            this.playerFalls = true;
-
-            if (!this.ground.collidesWith(this.player.body)) {
-                this.player.die(this.onLose, this);
-            }
-
-            this.game.physics.arcade.overlap(this.player, this.exit, this.onExit, null, this);
-        };
-
-        GameScene.prototype.onExit = function () {
-            this.player.win(this.onWin, this);
         };
 
         GameScene.prototype.onWin = function () {
@@ -411,13 +399,15 @@ var GameBp;
 (function (GameBp) {
     var Player = (function (_super) {
         __extends(Player, _super);
-        function Player(game, x, y) {
+        function Player(game, x, y, ground, onWinCb, onLoseCb, onWinLoseContext) {
             _super.call(this, game, x, y, 'player', 0);
+            this.ground = ground;
+            this.onWinCb = onWinCb;
+            this.onLoseCb = onLoseCb;
+            this.onWinLoseContext = onWinLoseContext;
             this.stopUpdates = false;
             this.anchor.setTo(0.5, 0.5);
             game.physics.enable(this, Phaser.Physics.ARCADE);
-
-            //            this.body.collideWorldBounds = true;
             game.add.existing(this);
         }
         Player.preload = function (scene) {
@@ -428,6 +418,7 @@ var GameBp;
             if (this.stopUpdates) {
                 return;
             }
+
             this.body.velocity.x = 0;
             this.body.velocity.y = 0;
 
@@ -444,9 +435,13 @@ var GameBp;
             } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
                 this.body.velocity.y = Player.MAX_SPEED;
             }
+
+            if (!this.ground.collidesWith(this.body)) {
+                this.die();
+            }
         };
 
-        Player.prototype.die = function (callback, context) {
+        Player.prototype.die = function () {
             if (this.stopUpdates) {
                 return;
             }
@@ -458,7 +453,7 @@ var GameBp;
 
             var spriteTween = this.game.add.tween(this);
             spriteTween.to({ rotation: 40, alpha: 0, width: 0, height: 0 }, 3000);
-            spriteTween.onComplete.add(callback, context);
+            spriteTween.onComplete.add(this.onLoseCb, this.onWinLoseContext);
             spriteTween.start();
 
             var fallTo = this.body.y + 40;
@@ -467,7 +462,7 @@ var GameBp;
             bodyTween.start();
         };
 
-        Player.prototype.win = function (callback, context) {
+        Player.prototype.win = function () {
             if (this.stopUpdates) {
                 return;
             }
@@ -480,7 +475,7 @@ var GameBp;
             var bodyY = this.body.y;
             this.game.add.tween(this.body).to({ y: bodyY - 10 }, 300, Phaser.Easing.Circular.Out).to({ y: bodyY }, 500, Phaser.Easing.Bounce.Out).loop().start();
 
-            this.game.add.tween({}).to({}, 5000).start().onComplete.add(callback, context);
+            this.game.add.tween({}).to({}, 5000).start().onComplete.add(this.onWinCb, this.onWinLoseContext);
         };
         Player.MAX_SPEED = 150;
         return Player;
@@ -558,15 +553,47 @@ var GameBp;
 (function (GameBp) {
     var Exit = (function (_super) {
         __extends(Exit, _super);
-        function Exit(scene, tilemap) {
+        function Exit(scene, tilemap, player) {
             _super.call(this, scene.game);
             this.tilemap = tilemap;
+            this.player = player;
 
             this.enableBody = true;
             tilemap.createFromObjects('objects', 29, 'exit', 0, true, false, this);
         }
+        Exit.preload = function (scene) {
+            scene.load.image('exit', 'assets/exit.png');
+        };
+
+        Exit.prototype.update = function () {
+            _super.prototype.update.call(this);
+
+            this.game.physics.arcade.overlap(this.player, this, this.onExit, null, this);
+        };
+
+        Exit.prototype.onExit = function () {
+            this.player.win();
+        };
         return Exit;
     })(Phaser.Group);
     GameBp.Exit = Exit;
+})(GameBp || (GameBp = {}));
+var GameBp;
+(function (GameBp) {
+    var Redball = (function (_super) {
+        __extends(Redball, _super);
+        function Redball(scene, tilemap) {
+            _super.call(this, scene.game);
+            this.tilemap = tilemap;
+
+            this.enableBody = true;
+            tilemap.createFromObjects('objects', 8, 'redball', 0, true, false, this);
+        }
+        Redball.preload = function (scene) {
+            scene.load.image('redball', 'assets/redball.png');
+        };
+        return Redball;
+    })(Phaser.Group);
+    GameBp.Redball = Redball;
 })(GameBp || (GameBp = {}));
 //# sourceMappingURL=minijam.js.map

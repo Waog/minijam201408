@@ -6,12 +6,13 @@ module GameBp {
 
         private stopUpdates: boolean = false;
 
-        constructor(game: Phaser.Game, x: number, y: number) {
+        constructor(game: Phaser.Game, x: number, y: number,
+            private ground: Ground, private onWinCb: Function, private onLoseCb: Function,
+            private onWinLoseContext: Object) {
 
             super(game, x, y, 'player', 0);
             this.anchor.setTo(0.5, 0.5);
             game.physics.enable(this, Phaser.Physics.ARCADE);
-            //            this.body.collideWorldBounds = true;
             game.add.existing(this);
         }
 
@@ -23,6 +24,8 @@ module GameBp {
             if (this.stopUpdates) {
                 return;
             }
+
+
             this.body.velocity.x = 0;
             this.body.velocity.y = 0;
 
@@ -39,9 +42,13 @@ module GameBp {
             } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
                 this.body.velocity.y = Player.MAX_SPEED;
             }
+
+            if (!this.ground.collidesWith(this.body)) {
+                this.die();
+            }
         }
 
-        die(callback: Function, context: Object) {
+        private die() {
             if (this.stopUpdates) {
                 return;
             }
@@ -53,7 +60,7 @@ module GameBp {
 
             var spriteTween: Phaser.Tween = this.game.add.tween(this);
             spriteTween.to({ rotation: 40, alpha: 0, width: 0, height: 0 }, 3000);
-            spriteTween.onComplete.add(callback, context);
+            spriteTween.onComplete.add(this.onLoseCb, this.onWinLoseContext);
             spriteTween.start();
 
             var fallTo: number = this.body.y + 40;
@@ -62,7 +69,7 @@ module GameBp {
             bodyTween.start();
         }
 
-        win(callback: Function, context: Object) {
+        win() {
             if (this.stopUpdates) {
                 return;
             }
@@ -80,7 +87,7 @@ module GameBp {
                 .start();
 
             this.game.add.tween({})
-                .to({}, 5000).start().onComplete.add(callback, context);
+                .to({}, 5000).start().onComplete.add(this.onWinCb, this.onWinLoseContext);
         }
     }
 }

@@ -13,6 +13,11 @@ module GameBp {
             tilemap.setCollisionByExclusion([], true, this.layer);
         }
 
+        update() {
+
+            super.update();
+        }
+
         collidesWith(body: Phaser.Physics.Arcade.Body): boolean {
             for (var y: number = 0; y < this.tilemap.height; y++) {
                 for (var x: number = 0; x < this.tilemap.width; x++) {

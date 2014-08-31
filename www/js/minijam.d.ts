@@ -29,6 +29,7 @@ declare module GameBp {
         private tilemap;
         private layer;
         constructor(scene: Phaser.State, tilemap: Phaser.Tilemap);
+        public update(): void;
         public collidesWith(body: Phaser.Physics.Arcade.Body): boolean;
         private collides(body, x, y);
     }
@@ -37,17 +38,8 @@ declare module GameBp {
     class GameScene extends Phaser.State {
         public music: Phaser.Sound;
         public hitSound: Phaser.Sound;
-        public input: any;
-        public player: Player;
-        public green: Phaser.TilemapLayer;
-        public ground: Ground;
-        public tiles: Phaser.Physics.Ninja.Tile[];
-        public playerFalls: boolean;
-        public exit: Exit;
         public preload(): void;
         public create(): void;
-        public update(): void;
-        public onExit(): void;
         public onWin(): void;
         public onLose(): void;
         public shutdown(): void;
@@ -90,13 +82,17 @@ declare module GameBp {
 }
 declare module GameBp {
     class Player extends Phaser.Sprite {
+        private ground;
+        private onWinCb;
+        private onLoseCb;
+        private onWinLoseContext;
         static MAX_SPEED: number;
         private stopUpdates;
-        constructor(game: Phaser.Game, x: number, y: number);
+        constructor(game: Phaser.Game, x: number, y: number, ground: Ground, onWinCb: Function, onLoseCb: Function, onWinLoseContext: Object);
         static preload(scene: Phaser.State): void;
         public update(): void;
-        public die(callback: Function, context: Object): void;
-        public win(callback: Function, context: Object): void;
+        private die();
+        public win(): void;
     }
 }
 declare module Utils {
@@ -115,6 +111,17 @@ declare module GameBp {
 declare module GameBp {
     class Exit extends Phaser.Group {
         private tilemap;
+        private player;
+        constructor(scene: Phaser.State, tilemap: Phaser.Tilemap, player: Player);
+        static preload(scene: Phaser.State): void;
+        public update(): void;
+        private onExit();
+    }
+}
+declare module GameBp {
+    class Redball extends Phaser.Group {
+        private tilemap;
         constructor(scene: Phaser.State, tilemap: Phaser.Tilemap);
+        static preload(scene: Phaser.State): void;
     }
 }
