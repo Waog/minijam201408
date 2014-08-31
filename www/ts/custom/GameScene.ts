@@ -9,13 +9,14 @@ module GameBp {
         green: Phaser.TilemapLayer;
         ground: Ground;
         tiles: Phaser.Physics.Ninja.Tile[];
-
+        exitGroup: Phaser.Group;
         playerFalls: boolean;
 
         preload() {
 
             this.load.tilemap('map', 'assets/testmap01.json', null, Phaser.Tilemap.TILED_JSON);
             this.load.image('tileset', 'assets/tileset.bak.png');
+            this.load.image('exit', 'assets/exit.png');
 
             Player.preload(this);
             this.load.audio('hit', Utils
@@ -41,24 +42,38 @@ module GameBp {
 
             this.ground = new Ground(this, map);
 
+
+
             //            this.green = map.createLayer('green');
             //            this.green.debug = true;
             //            map.setCollison([], true, 'green');
 
             //            var red = map.createLayer('red');
 
+            this.player = new Player(this.game, 10, 10);
+
+
+            //  And now we convert all of the Tiled objects with an ID of 34 into sprites within the coins group
+            this.exitGroup = this.game.add.group();
+            this.exitGroup.enableBody = true;
+            map.createFromObjects('objects', 29, 'exit', 0, true, false, this.exitGroup);
+
             var tutorialString = "collect the colors\n reach the goal!";
             this.game.add.bitmapText(10, 400, 'bmFont', tutorialString, 25);
-
-            this.player = new Player(this.game, 10, 10);
         }
 
         update() {
             this.playerFalls = true;
-            
-            if (! this.ground.collidesWith(this.player.body)) {
+
+            if (!this.ground.collidesWith(this.player.body)) {
                 this.player.die(this.onLose, this);
             }
+
+            this.game.physics.arcade.overlap(this.player, this.exitGroup, this.onExit, null, this);
+        }
+
+        onExit() {
+            this.player.win(this.onWin, this);
         }
 
         onWin() {
@@ -76,9 +91,9 @@ module GameBp {
         shutdown() {
             //            this.game.gameplayMusic.stop();
         }
-        
+
         render() {
-//            this.game.debug.body(this.player);
+            this.game.debug.body(this.player);
         }
     }
 

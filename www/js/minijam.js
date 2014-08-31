@@ -169,6 +169,7 @@ var GameBp;
         GameScene.prototype.preload = function () {
             this.load.tilemap('map', 'assets/testmap01.json', null, Phaser.Tilemap.TILED_JSON);
             this.load.image('tileset', 'assets/tileset.bak.png');
+            this.load.image('exit', 'assets/exit.png');
 
             GameBp.Player.preload(this);
             this.load.audio('hit', Utils.getAudioFileArray('assets/placeholder/fx/hit'));
@@ -193,10 +194,15 @@ var GameBp;
             //            this.green.debug = true;
             //            map.setCollison([], true, 'green');
             //            var red = map.createLayer('red');
+            this.player = new GameBp.Player(this.game, 10, 10);
+
+            //  And now we convert all of the Tiled objects with an ID of 34 into sprites within the coins group
+            this.exitGroup = this.game.add.group();
+            this.exitGroup.enableBody = true;
+            map.createFromObjects('objects', 29, 'exit', 0, true, false, this.exitGroup);
+
             var tutorialString = "collect the colors\n reach the goal!";
             this.game.add.bitmapText(10, 400, 'bmFont', tutorialString, 25);
-
-            this.player = new GameBp.Player(this.game, 10, 10);
         };
 
         GameScene.prototype.update = function () {
@@ -205,6 +211,12 @@ var GameBp;
             if (!this.ground.collidesWith(this.player.body)) {
                 this.player.die(this.onLose, this);
             }
+
+            this.game.physics.arcade.overlap(this.player, this.exitGroup, this.onExit, null, this);
+        };
+
+        GameScene.prototype.onExit = function () {
+            this.player.win(this.onWin, this);
         };
 
         GameScene.prototype.onWin = function () {
@@ -222,7 +234,7 @@ var GameBp;
         };
 
         GameScene.prototype.render = function () {
-            //            this.game.debug.body(this.player);
+            this.game.debug.body(this.player);
         };
         return GameScene;
     })(Phaser.State);
@@ -404,10 +416,11 @@ var GameBp;
         __extends(Player, _super);
         function Player(game, x, y) {
             _super.call(this, game, x, y, 'player', 0);
-            this.dying = false;
+            this.stopUpdates = false;
             this.anchor.setTo(0.5, 0.5);
             game.physics.enable(this, Phaser.Physics.ARCADE);
-            this.body.collideWorldBounds = true;
+
+            //            this.body.collideWorldBounds = true;
             game.add.existing(this);
         }
         Player.preload = function (scene) {
@@ -415,9 +428,7 @@ var GameBp;
         };
 
         Player.prototype.update = function () {
-            _super.prototype.update.call(this);
-
-            if (this.dying) {
+            if (this.stopUpdates) {
                 return;
             }
             this.body.velocity.x = 0;
@@ -439,12 +450,12 @@ var GameBp;
         };
 
         Player.prototype.die = function (callback, context) {
-            if (this.dying) {
+            if (this.stopUpdates) {
                 return;
             }
 
             console.log("I'm dead");
-            this.dying = true;
+            this.stopUpdates = true;
             this.body.velocity.x = 0;
             this.body.velocity.y = 0;
 
@@ -456,6 +467,21 @@ var GameBp;
             var fallTo = this.body.y + 40;
             var bodyTween = this.game.add.tween(this.body);
             bodyTween.to({ y: fallTo }, 3000);
+            bodyTween.start();
+        };
+
+        Player.prototype.win = function (callback, context) {
+            if (this.stopUpdates) {
+                return;
+            }
+
+            console.log("I won!");
+            this.stopUpdates = true;
+            this.body.velocity.x = 0;
+            this.body.velocity.y = 0;
+
+            var bodyTween = this.game.add.tween(this.body);
+            bodyTween.to({ y: this.body.y - 10 }, 500, Phaser.Easing.Circular.Out).to({ y: this.body.y }, 800, Phaser.Easing.Bounce.Out).repeat(3).onComplete.add(callback, context);
             bodyTween.start();
         };
         Player.MAX_SPEED = 150;

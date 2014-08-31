@@ -4,14 +4,14 @@ module GameBp {
 
         static MAX_SPEED: number = 150;
 
-        private dying: boolean = false;
+        private stopUpdates: boolean = false;
 
         constructor(game: Phaser.Game, x: number, y: number) {
 
             super(game, x, y, 'player', 0);
             this.anchor.setTo(0.5, 0.5);
             game.physics.enable(this, Phaser.Physics.ARCADE);
-            this.body.collideWorldBounds = true;
+            //            this.body.collideWorldBounds = true;
             game.add.existing(this);
         }
 
@@ -20,9 +20,7 @@ module GameBp {
         }
 
         update() {
-            super.update();
-
-            if (this.dying) {
+            if (this.stopUpdates) {
                 return;
             }
             this.body.velocity.x = 0;
@@ -44,17 +42,17 @@ module GameBp {
         }
 
         die(callback: Function, context: Object) {
-            if (this.dying) {
+            if (this.stopUpdates) {
                 return;
             }
-            
+
             console.log("I'm dead");
-            this.dying = true;
+            this.stopUpdates = true;
             this.body.velocity.x = 0;
             this.body.velocity.y = 0;
 
             var spriteTween: Phaser.Tween = this.game.add.tween(this);
-            spriteTween.to({rotation: 40, alpha: 0, width: 0, height: 0 }, 3000);
+            spriteTween.to({ rotation: 40, alpha: 0, width: 0, height: 0 }, 3000);
             spriteTween.onComplete.add(callback, context);
             spriteTween.start();
 
@@ -62,7 +60,24 @@ module GameBp {
             var bodyTween: Phaser.Tween = this.game.add.tween(this.body);
             bodyTween.to({ y: fallTo }, 3000);
             bodyTween.start();
+        }
 
+        win(callback: Function, context: Object) {
+            if (this.stopUpdates) {
+                return;
+            }
+
+            console.log("I won!");
+            this.stopUpdates = true;
+            this.body.velocity.x = 0;
+            this.body.velocity.y = 0;
+
+            var bodyTween: Phaser.Tween = this.game.add.tween(this.body);
+            bodyTween.to({ y: this.body.y - 10 }, 500, Phaser.Easing.Circular.Out)
+                .to({ y: this.body.y }, 800, Phaser.Easing.Bounce.Out)
+                .repeat(3)
+                .onComplete.add(callback, context);
+            bodyTween.start();
         }
     }
 }

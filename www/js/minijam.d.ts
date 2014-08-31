@@ -42,10 +42,12 @@ declare module GameBp {
         public green: Phaser.TilemapLayer;
         public ground: Ground;
         public tiles: Phaser.Physics.Ninja.Tile[];
+        public exitGroup: Phaser.Group;
         public playerFalls: boolean;
         public preload(): void;
         public create(): void;
         public update(): void;
+        public onExit(): void;
         public onWin(): void;
         public onLose(): void;
         public shutdown(): void;
@@ -89,11 +91,12 @@ declare module GameBp {
 declare module GameBp {
     class Player extends Phaser.Sprite {
         static MAX_SPEED: number;
-        private dying;
+        private stopUpdates;
         constructor(game: Phaser.Game, x: number, y: number);
         static preload(scene: Phaser.State): void;
         public update(): void;
         public die(callback: Function, context: Object): void;
+        public win(callback: Function, context: Object): void;
     }
 }
 declare module Utils {

@@ -1,7 +1,7 @@
 { "height":5,
  "layers":[
         {
-         "data":[43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 41, 41, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43],
+         "data":[43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 41, 41, 41, 41, 41, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43],
          "height":5,
          "name":"background",
          "opacity":1,
@@ -12,7 +12,7 @@
          "y":0
         }, 
         {
-         "data":[25, 27, 0, 0, 0, 33, 35, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+         "data":[25, 27, 0, 0, 0, 33, 34, 26, 26, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          "height":5,
          "name":"ground",
          "opacity":1,
@@ -27,51 +27,9 @@
          "name":"objects",
          "objects":[
                 {
-                 "gid":15,
+                 "gid":29,
                  "height":0,
-                 "name":"",
-                 "properties":
-                    {
-
-                    },
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":64,
-                 "y":16
-                }, 
-                {
-                 "gid":15,
-                 "height":0,
-                 "name":"",
-                 "properties":
-                    {
-
-                    },
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":48,
-                 "y":16
-                }, 
-                {
-                 "gid":15,
-                 "height":0,
-                 "name":"",
-                 "properties":
-                    {
-
-                    },
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":48,
-                 "y":32
-                }, 
-                {
-                 "gid":15,
-                 "height":0,
-                 "name":"",
+                 "name":"exit",
                  "properties":
                     {
 
@@ -84,7 +42,7 @@
                 }],
          "opacity":1,
          "type":"objectgroup",
-         "visible":false,
+         "visible":true,
          "width":5,
          "x":0,
          "y":0
