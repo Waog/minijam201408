@@ -126,20 +126,20 @@ var GameBp;
         function Ground(scene, tilemap) {
             _super.call(this, scene.game);
             this.tilemap = tilemap;
+            this.activatedLayers = [];
+            this.redActivated = false;
 
-            this.layer = tilemap.createLayer('ground');
-            this.layer.debug = true;
-            tilemap.setCollisionByExclusion([], true, this.layer);
+            var mainLayer = tilemap.createLayer('ground');
+            this.activatedLayers.push(mainLayer);
+            mainLayer.z = 10;
         }
-        Ground.prototype.update = function () {
-            _super.prototype.update.call(this);
-        };
-
         Ground.prototype.collidesWith = function (body) {
             for (var y = 0; y < this.tilemap.height; y++) {
                 for (var x = 0; x < this.tilemap.width; x++) {
-                    if (this.collides(body, x, y)) {
-                        return true;
+                    for (var i in this.activatedLayers) {
+                        if (this.collides(body, x, y, this.activatedLayers[i])) {
+                            return true;
+                        }
                     }
                 }
             }
@@ -147,8 +147,8 @@ var GameBp;
             return false;
         };
 
-        Ground.prototype.collides = function (body, x, y) {
-            var tile = this.tilemap.getTile(x, y, this.layer);
+        Ground.prototype.collides = function (body, x, y, layer) {
+            var tile = this.tilemap.getTile(x, y, layer);
             if (!tile) {
                 return false;
             }
@@ -158,6 +158,26 @@ var GameBp;
             }
 
             return true;
+        };
+
+        Ground.prototype.activateRed = function () {
+            if (this.redActivated) {
+                return;
+            }
+            console.log('red!');
+            this.redActivated = true;
+            var newLayer = this.tilemap.createLayer('redGround');
+
+            //            this.moveAboveZLayerOf(newLayer, this.activatedLayers[0]);
+            newLayer.z = 12;
+            this.game.world.sort();
+            this.activatedLayers.push(newLayer);
+        };
+
+        Ground.prototype.moveAboveZLayerOf = function (layerToMove, baseLayer) {
+            while (layerToMove.z > baseLayer.z + 1) {
+                this.game.world.moveDown(layerToMove);
+            }
         };
         return Ground;
     })(Phaser.Group);
@@ -196,9 +216,11 @@ var GameBp;
             var ground = new GameBp.Ground(this, map);
 
             var player = new GameBp.Player(this.game, 10, 10, ground, this.onWin, this.onLose, this);
+            this.player = player;
 
             var exit = new GameBp.Exit(this, map, player);
-            new GameBp.Redball(this, map);
+
+            new GameBp.Redball(this, map, player, ground);
 
             var tutorialString = "collect the colors\n reach the goal!";
             this.game.add.bitmapText(10, 400, 'bmFont', tutorialString, 25);
@@ -219,7 +241,7 @@ var GameBp;
         };
 
         GameScene.prototype.render = function () {
-            //            this.game.debug.body(this.player);
+            this.game.debug.body(this.player);
         };
         return GameScene;
     })(Phaser.State);
@@ -409,6 +431,10 @@ var GameBp;
             this.anchor.setTo(0.5, 0.5);
             game.physics.enable(this, Phaser.Physics.ARCADE);
             game.add.existing(this);
+
+            this.body.setSize(10, 10);
+
+            this.z = 50;
         }
         Player.preload = function (scene) {
             scene.load.image('player', 'assets/player.png');
@@ -560,6 +586,7 @@ var GameBp;
 
             this.enableBody = true;
             tilemap.createFromObjects('objects', 29, 'exit', 0, true, false, this);
+            this.z = 40;
         }
         Exit.preload = function (scene) {
             scene.load.image('exit', 'assets/exit.png');
@@ -582,15 +609,27 @@ var GameBp;
 (function (GameBp) {
     var Redball = (function (_super) {
         __extends(Redball, _super);
-        function Redball(scene, tilemap) {
+        function Redball(scene, tilemap, player, ground) {
             _super.call(this, scene.game);
             this.tilemap = tilemap;
+            this.player = player;
+            this.ground = ground;
 
             this.enableBody = true;
             tilemap.createFromObjects('objects', 8, 'redball', 0, true, false, this);
+            this.z = 40;
         }
         Redball.preload = function (scene) {
             scene.load.image('redball', 'assets/redball.png');
+        };
+
+        Redball.prototype.update = function () {
+            _super.prototype.update.call(this);
+            this.game.physics.arcade.overlap(this.player, this, this.onTouch, null, this);
+        };
+
+        Redball.prototype.onTouch = function () {
+            this.ground.activateRed();
         };
         return Redball;
     })(Phaser.Group);

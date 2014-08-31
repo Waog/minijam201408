@@ -9,6 +9,7 @@ module GameBp {
 
             this.enableBody = true;
             tilemap.createFromObjects('objects', 29, 'exit', 0, true, false, this);
+            this.z = 40;
         }
 
         static preload(scene: Phaser.State) {

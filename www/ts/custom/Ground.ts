@@ -1,28 +1,26 @@
 module GameBp {
 
     export class Ground extends Phaser.Group {
-        
-        private layer: Phaser.TilemapLayer
+
+        private activatedLayers: Phaser.TilemapLayer[] = [];
+        private redActivated: boolean = false;
 
         constructor(scene: Phaser.State, private tilemap: Phaser.Tilemap) {
 
             super(scene.game);
 
-            this.layer = tilemap.createLayer('ground');
-            this.layer.debug = true;
-            tilemap.setCollisionByExclusion([], true, this.layer);
-        }
-
-        update() {
-
-            super.update();
+            var mainLayer: Phaser.TilemapLayer = tilemap.createLayer('ground');
+            this.activatedLayers.push(mainLayer);
+            mainLayer.z = 10;
         }
 
         collidesWith(body: Phaser.Physics.Arcade.Body): boolean {
             for (var y: number = 0; y < this.tilemap.height; y++) {
                 for (var x: number = 0; x < this.tilemap.width; x++) {
-                    if (this.collides(body, x, y)) {
-                        return true;
+                    for (var i in this.activatedLayers) {
+                        if (this.collides(body, x, y, this.activatedLayers[i])) {
+                            return true;
+                        }
                     }
                 }
             }
@@ -30,8 +28,8 @@ module GameBp {
             return false;
         }
 
-        private collides(body: Phaser.Physics.Arcade.Body, x: number, y: number): boolean {
-            var tile: Phaser.Tile = this.tilemap.getTile(x, y, this.layer);
+        private collides(body: Phaser.Physics.Arcade.Body, x: number, y: number, layer: Phaser.TilemapLayer): boolean {
+            var tile: Phaser.Tile = this.tilemap.getTile(x, y, layer);
             if (!tile) {
                 return false;
             }
@@ -42,6 +40,26 @@ module GameBp {
             }
 
             return true;
+        }
+
+        activateRed() {
+            if (this.redActivated) {
+                return;
+            }
+            console.log('red!');
+            this.redActivated = true;
+            var newLayer: Phaser.TilemapLayer = this.tilemap.createLayer('redGround')
+//            this.moveAboveZLayerOf(newLayer, this.activatedLayers[0]);
+            newLayer.z = 12;
+            this.game.world.sort();
+            this.activatedLayers.push(newLayer);
+        }
+
+        moveAboveZLayerOf(layerToMove: Phaser.TilemapLayer, baseLayer: Phaser.TilemapLayer) {
+
+            while (layerToMove.z > baseLayer.z + 1) {
+                this.game.world.moveDown(layerToMove);
+            }
         }
     }
 }

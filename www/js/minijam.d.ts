@@ -27,15 +27,18 @@ declare module GameBp {
 declare module GameBp {
     class Ground extends Phaser.Group {
         private tilemap;
-        private layer;
+        private activatedLayers;
+        private redActivated;
         constructor(scene: Phaser.State, tilemap: Phaser.Tilemap);
-        public update(): void;
         public collidesWith(body: Phaser.Physics.Arcade.Body): boolean;
-        private collides(body, x, y);
+        private collides(body, x, y, layer);
+        public activateRed(): void;
+        public moveAboveZLayerOf(layerToMove: Phaser.TilemapLayer, baseLayer: Phaser.TilemapLayer): void;
     }
 }
 declare module GameBp {
     class GameScene extends Phaser.State {
+        public player: Player;
         public music: Phaser.Sound;
         public hitSound: Phaser.Sound;
         public preload(): void;
@@ -121,7 +124,11 @@ declare module GameBp {
 declare module GameBp {
     class Redball extends Phaser.Group {
         private tilemap;
-        constructor(scene: Phaser.State, tilemap: Phaser.Tilemap);
+        private player;
+        private ground;
+        constructor(scene: Phaser.State, tilemap: Phaser.Tilemap, player: Player, ground: Ground);
         static preload(scene: Phaser.State): void;
+        public update(): void;
+        public onTouch(): void;
     }
 }

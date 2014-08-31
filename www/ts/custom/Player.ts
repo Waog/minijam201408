@@ -14,6 +14,10 @@ module GameBp {
             this.anchor.setTo(0.5, 0.5);
             game.physics.enable(this, Phaser.Physics.ARCADE);
             game.add.existing(this);
+
+            this.body.setSize(10, 10);
+            
+            this.z = 50;
         }
 
         static preload(scene: Phaser.State) {

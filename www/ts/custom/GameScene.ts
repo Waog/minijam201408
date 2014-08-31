@@ -2,6 +2,7 @@ module GameBp {
 
     export class GameScene extends Phaser.State {
 
+        player: Player; // just here for debugging physics
         music: Phaser.Sound;
         hitSound: Phaser.Sound;
 
@@ -36,10 +37,12 @@ module GameBp {
 
             var ground: Ground = new Ground(this, map);
 
-            var player: Player = new Player(this.game, 10, 10, ground, this.onWin, this.onLose, this);
+            var player:Player = new Player(this.game, 10, 10, ground, this.onWin, this.onLose, this);
+            this.player = player;
 
             var exit: Exit = new Exit(this, map, player);
-            new Redball(this, map);
+
+            new Redball(this, map, player, ground);
 
             var tutorialString = "collect the colors\n reach the goal!";
             this.game.add.bitmapText(10, 400, 'bmFont', tutorialString, 25);
@@ -62,7 +65,7 @@ module GameBp {
         }
 
         render() {
-            //            this.game.debug.body(this.player);
+            this.game.debug.body(this.player);
         }
     }
 
