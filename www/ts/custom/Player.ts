@@ -52,7 +52,7 @@ module GameBp {
             }
         }
 
-        private die() {
+        die() {
             if (this.stopUpdates) {
                 return;
             }

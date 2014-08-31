@@ -94,7 +94,7 @@ declare module GameBp {
         constructor(game: Phaser.Game, x: number, y: number, ground: Ground, onWinCb: Function, onLoseCb: Function, onWinLoseContext: Object);
         static preload(scene: Phaser.State): void;
         public update(): void;
-        private die();
+        public die(): void;
         public win(): void;
     }
 }
@@ -127,6 +127,30 @@ declare module GameBp {
         private player;
         private ground;
         constructor(scene: Phaser.State, tilemap: Phaser.Tilemap, player: Player, ground: Ground);
+        static preload(scene: Phaser.State): void;
+        public update(): void;
+        public onTouch(): void;
+    }
+}
+declare module GameBp {
+    class Blueball extends Phaser.Group {
+        private scene;
+        private tilemap;
+        private player;
+        private ground;
+        private isActivated;
+        constructor(scene: Phaser.State, tilemap: Phaser.Tilemap, player: Player, ground: Ground);
+        static preload(scene: Phaser.State): void;
+        public update(): void;
+        public onTouch(): void;
+    }
+}
+declare module GameBp {
+    class Ghost extends Phaser.Group {
+        private tilemap;
+        private player;
+        constructor(scene: Phaser.State, tilemap: Phaser.Tilemap, player: Player);
+        public activateMovement(): void;
         static preload(scene: Phaser.State): void;
         public update(): void;
         public onTouch(): void;

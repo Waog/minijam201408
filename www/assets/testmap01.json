@@ -28,7 +28,7 @@
          "name":"redGround",
          "opacity":1,
          "type":"tilelayer",
-         "visible":false,
+         "visible":true,
          "width":5,
          "x":0,
          "y":0
@@ -63,6 +63,48 @@
                  "visible":true,
                  "width":0,
                  "x":16,
+                 "y":64
+                }, 
+                {
+                 "gid":24,
+                 "height":0,
+                 "name":"",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":0,
+                 "y":64
+                }, 
+                {
+                 "gid":24,
+                 "height":0,
+                 "name":"blueball",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":0,
+                 "y":64
+                }, 
+                {
+                 "gid":31,
+                 "height":0,
+                 "name":"ghost",
+                 "properties":
+                    {
+
+                    },
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":48,
                  "y":64
                 }],
          "opacity":1,

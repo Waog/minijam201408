@@ -193,8 +193,10 @@ var GameBp;
         GameScene.prototype.preload = function () {
             this.load.tilemap('map', 'assets/testmap01.json', null, Phaser.Tilemap.TILED_JSON);
             this.load.image('tileset', 'assets/tileset.bak.png');
-            this.load.image('redball', 'assets/redball.png');
 
+            GameBp.Ghost.preload(this);
+            GameBp.Blueball.preload(this);
+            GameBp.Redball.preload(this);
             GameBp.Exit.preload(this);
             GameBp.Player.preload(this);
             this.load.audio('hit', Utils.getAudioFileArray('assets/placeholder/fx/hit'));
@@ -211,7 +213,8 @@ var GameBp;
             var map = this.add.tilemap('map');
             map.addTilesetImage('tileset.bak', 'tileset');
 
-            var background = map.createLayer('background');
+            var background = map.createLayer('background', map.widthInPixels, map.heightInPixels);
+            background.resizeWorld();
 
             var ground = new GameBp.Ground(this, map);
 
@@ -221,6 +224,7 @@ var GameBp;
             var exit = new GameBp.Exit(this, map, player);
 
             new GameBp.Redball(this, map, player, ground);
+            new GameBp.Blueball(this, map, player, ground);
 
             var tutorialString = "collect the colors\n reach the goal!";
             this.game.add.bitmapText(10, 400, 'bmFont', tutorialString, 25);
@@ -634,5 +638,85 @@ var GameBp;
         return Redball;
     })(Phaser.Group);
     GameBp.Redball = Redball;
+})(GameBp || (GameBp = {}));
+var GameBp;
+(function (GameBp) {
+    var Blueball = (function (_super) {
+        __extends(Blueball, _super);
+        function Blueball(scene, tilemap, player, ground) {
+            _super.call(this, scene.game);
+            this.scene = scene;
+            this.tilemap = tilemap;
+            this.player = player;
+            this.ground = ground;
+            this.isActivated = false;
+
+            this.enableBody = true;
+            tilemap.createFromObjects('objects', 24, 'blueball', 0, true, false, this);
+            this.z = 40;
+        }
+        Blueball.preload = function (scene) {
+            scene.load.image('blueball', 'assets/blueball.png');
+        };
+
+        Blueball.prototype.update = function () {
+            _super.prototype.update.call(this);
+            this.game.physics.arcade.overlap(this.player, this, this.onTouch, null, this);
+        };
+
+        Blueball.prototype.onTouch = function () {
+            if (this.isActivated) {
+                return;
+            }
+            this.isActivated = true;
+
+            console.log("blue!");
+            new GameBp.Ghost(this.scene, this.tilemap, this.player);
+        };
+        return Blueball;
+    })(Phaser.Group);
+    GameBp.Blueball = Blueball;
+})(GameBp || (GameBp = {}));
+var GameBp;
+(function (GameBp) {
+    var Ghost = (function (_super) {
+        __extends(Ghost, _super);
+        function Ghost(scene, tilemap, player) {
+            _super.call(this, scene.game);
+            this.tilemap = tilemap;
+            this.player = player;
+            this.enableBody = true;
+            tilemap.createFromObjects('objects', 31, 'ghost', 0, true, false, this);
+            this.z = 60;
+
+            this.activateMovement();
+        }
+        Ghost.prototype.activateMovement = function () {
+            for (var i = 0; i < this.countLiving(); i++) {
+                var curGhost = this.getAt(i);
+                this.game.physics.arcade.enable(curGhost);
+                curGhost.body.velocity.x = -20 + Math.random() * 40;
+                curGhost.body.velocity.y = -20 + Math.random() * 40;
+                curGhost.body.bounce.x = 1;
+                curGhost.body.bounce.y = 1;
+                curGhost.body.collideWorldBounds = true;
+            }
+        };
+
+        Ghost.preload = function (scene) {
+            scene.load.image('ghost', 'assets/ghost.png');
+        };
+
+        Ghost.prototype.update = function () {
+            _super.prototype.update.call(this);
+            this.game.physics.arcade.overlap(this.player, this, this.onTouch, null, this);
+        };
+
+        Ghost.prototype.onTouch = function () {
+            this.player.die();
+        };
+        return Ghost;
+    })(Phaser.Group);
+    GameBp.Ghost = Ghost;
 })(GameBp || (GameBp = {}));
 //# sourceMappingURL=minijam.js.map

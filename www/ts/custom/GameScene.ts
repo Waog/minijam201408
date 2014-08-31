@@ -10,8 +10,10 @@ module GameBp {
 
             this.load.tilemap('map', 'assets/testmap01.json', null, Phaser.Tilemap.TILED_JSON);
             this.load.image('tileset', 'assets/tileset.bak.png');
-            this.load.image('redball', 'assets/redball.png');
 
+            Ghost.preload(this);
+            Blueball.preload(this);
+            Redball.preload(this);
             Exit.preload(this);
             Player.preload(this);
             this.load.audio('hit', Utils
@@ -33,7 +35,8 @@ module GameBp {
             var map = this.add.tilemap('map');
             map.addTilesetImage('tileset.bak', 'tileset');
 
-            var background = map.createLayer('background');
+            var background:Phaser.TilemapLayer = map.createLayer('background', map.widthInPixels, map.heightInPixels);
+            background.resizeWorld();
 
             var ground: Ground = new Ground(this, map);
 
@@ -43,6 +46,7 @@ module GameBp {
             var exit: Exit = new Exit(this, map, player);
 
             new Redball(this, map, player, ground);
+            new Blueball(this, map, player, ground);
 
             var tutorialString = "collect the colors\n reach the goal!";
             this.game.add.bitmapText(10, 400, 'bmFont', tutorialString, 25);
